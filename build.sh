@@ -14,17 +14,33 @@
 # *******************************************************************************
 
 export GCC=${GCC:?Please set GCC variable to desired gcc major version}
+export ARCH=${ARCH:-x86_64}
+
+# Map architecture to target triplet
+case $ARCH in
+  x86_64)
+    TARGET_TRIPLET="x86_64-unknown-linux-gnu"
+    ;;
+  arm64|aarch64)
+    TARGET_TRIPLET="aarch64-unknown-linux-gnu"
+    ;;
+  *)
+    echo "Unsupported architecture: $ARCH"
+    echo "Supported architectures: x86_64, arm64/aarch64"
+    exit 1
+    ;;
+esac
 
 mkdir -p ${PWD}/output/downloads
-mkdir -p ${PWD}/output/gcc${GCC}
+mkdir -p ${PWD}/output/${TARGET_TRIPLET}_gcc${GCC}
 
 ###############################################################################
 #
 # Build
 #
 ###############################################################################
-export CT_PREFIX="${PWD}/output/gcc${GCC}"
-DEFCONFIG=configs/x86_64-unknown-linux-gnu_gcc${GCC} ct-ng defconfig
+export CT_PREFIX="${PWD}/output/${TARGET_TRIPLET}_gcc${GCC}"
+DEFCONFIG=configs/${TARGET_TRIPLET}_gcc${GCC} ct-ng defconfig
 ct-ng -j$(nproc) build
 
 ###############################################################################
@@ -46,5 +62,5 @@ tar -c \
     --owner=0 \
     --group=0 \
     --numeric-owner \
-    -C "output/gcc${GCC}" . \
-    | gzip -n > "output/x86_64-unknown-linux-gnu_gcc${GCC}.tar.gz"
+    -C "output/${TARGET_TRIPLET}_gcc${GCC}" . \
+    | gzip -n > "output/${TARGET_TRIPLET}_gcc${GCC}.tar.gz"
