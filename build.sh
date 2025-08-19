@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # *******************************************************************************
 # Copyright (c) 2025 Contributors to the Eclipse Foundation
@@ -64,3 +65,7 @@ tar -c \
     --numeric-owner \
     -C "output/${TARGET_TRIPLET}_gcc${GCC}" . \
     | gzip -n > "output/${TARGET_TRIPLET}_gcc${GCC}.tar.gz"
+    
+cd output
+sha256sum ${TARGET_TRIPLET}_gcc${GCC}.tar.gz > ${TARGET_TRIPLET}_gcc${GCC}.tar.gz.sha256
+cd ..    

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # *******************************************************************************
 # Copyright (c) 2025 Contributors to the Eclipse Foundation
@@ -39,5 +40,19 @@ GCC_VERSION=${2:-12}
 
 echo "Building toolchain for architecture: $ARCH with GCC version: $GCC_VERSION"
 
-# Execute the build of the selected toolchain
-docker run --rm -it --user "$(id -u):$(id -g)" -v ${PWD}:/workspace $FULL_IMAGE_NAME /bin/bash -c "cd /workspace && GCC=$GCC_VERSION ARCH=$ARCH ./build.sh"
+# Check if we're in a CI environment
+if [ -n "$CI" ] || [ ! -t 0 ]; then
+    # CI environment - no interactive/tty
+    docker run --rm --user "$(id -u):$(id -g)" -v ${PWD}:/workspace $FULL_IMAGE_NAME /bin/bash -c "
+        set -e
+        cd /workspace
+        GCC=$GCC_VERSION ARCH=$ARCH ./build.sh
+    "
+else
+    # Local development - interactive mode
+    docker run --rm -it --user "$(id -u):$(id -g)" -v ${PWD}:/workspace $FULL_IMAGE_NAME /bin/bash -c "
+        set -e
+        cd /workspace
+        GCC=$GCC_VERSION ARCH=$ARCH ./build.sh
+    "
+fi
